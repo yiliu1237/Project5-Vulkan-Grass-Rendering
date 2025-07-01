@@ -7,6 +7,8 @@ Scene::Scene(Device* device) : device(device) {
     memcpy(mappedData, &time, sizeof(Time));
 }
 
+
+
 const std::vector<Model*>& Scene::GetModels() const {
     return models;
 }
@@ -23,6 +25,13 @@ void Scene::AddBlades(Blades* blades) {
   this->blades.push_back(blades);
 }
 
+
+
+float Scene::GetFPS() const { return fps; }
+
+const Time& Scene::GetTime() const { return time; }
+
+
 void Scene::UpdateTime() {
     high_resolution_clock::time_point currentTime = high_resolution_clock::now();
     duration<float> nextDeltaTime = duration_cast<duration<float>>(currentTime - startTime);
@@ -32,6 +41,17 @@ void Scene::UpdateTime() {
     time.totalTime += time.deltaTime;
 
     memcpy(mappedData, &time, sizeof(Time));
+
+
+    // FPS calculation
+    frameCounter++;
+    timeAccumulator += time.deltaTime;
+
+    if (timeAccumulator >= 0.5f) {
+        fps = frameCounter / timeAccumulator;
+        frameCounter = 0;
+        timeAccumulator = 0.0f;
+    }
 }
 
 VkBuffer Scene::GetTimeBuffer() const {

@@ -3,7 +3,7 @@
 #include "Image.h"
 
 Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices)
-  : device(device), vertices(vertices), indices(indices) {
+    : device(device), vertices(vertices), indices(indices){
 
     if (vertices.size() > 0) {
         BufferUtils::CreateBufferFromData(device, commandPool, this->vertices.data(), vertices.size() * sizeof(Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer, vertexBufferMemory);
@@ -13,8 +13,13 @@ Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex
         BufferUtils::CreateBufferFromData(device, commandPool, this->indices.data(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer, indexBufferMemory);
     }
 
+
     modelBufferObject.modelMatrix = glm::mat4(1.0f);
-    BufferUtils::CreateBufferFromData(device, commandPool, &modelBufferObject, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, modelBuffer, modelBufferMemory);
+    modelBufferObject.transform = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    BufferUtils::CreateBuffer(device, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelBuffer, modelBufferMemory);
+    vkMapMemory(device->GetVkDevice(), modelBufferMemory, 0, sizeof(ModelBufferObject), 0, &modelUBOData);
+    memcpy(modelUBOData, &modelBufferObject, sizeof(ModelBufferObject));
 }
 
 Model::~Model() {
@@ -28,6 +33,7 @@ Model::~Model() {
         vkFreeMemory(device->GetVkDevice(), vertexBufferMemory, nullptr);
     }
 
+    vkUnmapMemory(device->GetVkDevice(), modelBufferMemory);
     vkDestroyBuffer(device->GetVkDevice(), modelBuffer, nullptr);
     vkFreeMemory(device->GetVkDevice(), modelBufferMemory, nullptr);
 
@@ -39,6 +45,7 @@ Model::~Model() {
         vkDestroySampler(device->GetVkDevice(), textureSampler, nullptr);
     }
 }
+
 
 void Model::SetTexture(VkImage texture) {
     this->texture = texture;
@@ -82,6 +89,7 @@ void Model::SetTexture(VkImage texture) {
     }
 }
 
+
 const std::vector<Vertex>& Model::getVertices() const {
     return vertices;
 }
@@ -112,4 +120,32 @@ VkImageView Model::GetTextureView() const {
 
 VkSampler Model::GetTextureSampler() const {
     return textureSampler;
+}
+
+
+
+void Model::UpdateTransform(const glm::vec4& transform) {
+    // Update local CPU-side copy
+    modelBufferObject.transform = transform;
+
+    // Map the GPU memory for the uniform buffer
+    void* gpuMappedMemory = nullptr;
+    VkResult result = vkMapMemory(
+        device->GetVkDevice(),
+        modelBufferMemory,
+        0,
+        sizeof(ModelBufferObject),
+        0,
+        &gpuMappedMemory
+    );
+
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to map model uniform buffer memory!");
+    }
+
+    // Copy updated transform data into mapped memory
+    memcpy(gpuMappedMemory, &modelBufferObject, sizeof(ModelBufferObject));
+
+    // Unmap after upload
+    vkUnmapMemory(device->GetVkDevice(), modelBufferMemory);
 }
