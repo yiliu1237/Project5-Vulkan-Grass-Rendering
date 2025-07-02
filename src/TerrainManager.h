@@ -9,6 +9,7 @@ public:
     float GetHeightAt(float x, float z) const;
 
     TerrainManager(Device* device, VkCommandPool commandPool, Scene* scene, VkImage texture, float tileSize, int resolution, int gridWidth, int gridHeight);
+    TerrainManager(Device* device, VkCommandPool commandPool, Scene* scene, VkImage texture, float tileSize, int resolution, int gridWidth, int gridHeight, int i, int j);
     ~TerrainManager();
 
 private:

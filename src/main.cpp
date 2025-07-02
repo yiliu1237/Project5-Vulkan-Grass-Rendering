@@ -261,8 +261,9 @@ int main() {
     float tileSize = 15.0f;
     int resolution = 100;
 
-    terrainManager = new TerrainManager(device, transferCommandPool, scene, grassImage, tileSize, resolution, gridWidth, gridHeight);
+    terrainManager = new TerrainManager(device, transferCommandPool, scene, grassImage, tileSize, resolution, gridWidth, gridHeight, 1, 2);
 
+    //terrainManager = new TerrainManager(device, transferCommandPool, scene, grassImage, tileSize, resolution, gridWidth, gridHeight);
 
     for (auto* b : scene->GetBlades()) {
         std::cout << b->GetNumBladesBuffer() << std::endl;

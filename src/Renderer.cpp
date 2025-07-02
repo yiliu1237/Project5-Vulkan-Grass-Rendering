@@ -463,8 +463,10 @@ void Renderer::CreateGrassDescriptorSets() {
     std::vector<VkWriteDescriptorSet> descriptorWrites(scene->GetBlades().size());
     std::vector<VkDescriptorBufferInfo> bufferInfos(scene->GetBlades().size()); // store unique infos
 
+
     for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
         bufferInfos[i].buffer = scene->GetBlades()[i]->GetModelBuffer();
+        //bufferInfos[i].buffer = scene->GetBlades()[i]->GetTransformationBuffer();  
         bufferInfos[i].offset = 0;
         bufferInfos[i].range = sizeof(ModelBufferObject);
 
@@ -476,6 +478,21 @@ void Renderer::CreateGrassDescriptorSets() {
         descriptorWrites[i].descriptorCount = 1;
         descriptorWrites[i].pBufferInfo = &bufferInfos[i];
     }
+
+
+    //for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
+    //    bufferInfos[i].buffer = scene->GetBlades()[i]->GetTransformationBuffer(); 
+    //    bufferInfos[i].offset = 0;
+    //    bufferInfos[i].range = sizeof(TransformationInfo);
+
+    //    descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    //    descriptorWrites[i].dstSet = grassDescriptorSets[i];
+    //    descriptorWrites[i].dstBinding = 0;
+    //    descriptorWrites[i].dstArrayElement = 0;
+    //    descriptorWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //    descriptorWrites[i].descriptorCount = 1;
+    //    descriptorWrites[i].pBufferInfo = &bufferInfos[i];
+    //}
 
     // Update descriptor sets
     vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -1123,6 +1140,7 @@ void Renderer::RecordComputeCommandBuffer() {
     // Bind descriptor set for time uniforms
     vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 1, 1, &timeDescriptorSet, 0, nullptr);
 
+
     // Iterate over each grass blade group (patch) in the scene
     for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
         // Bind the descriptor set for the current blade group
@@ -1249,7 +1267,7 @@ void Renderer::RecordCommandBuffers() {
         for (uint32_t j = 0; j < scene->GetBlades().size(); ++j) {
             VkBuffer vertexBuffers[] = { scene->GetBlades()[j]->GetCulledBladesBuffer() };
             VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+            vkCmdBindVertexBuffers(commandBuffers[i], 1, 1, vertexBuffers, offsets);
 
             // Bind the descriptor set for each grass blades model
             vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, grassPipelineLayout, 1, 1, &grassDescriptorSets[j], 0, nullptr);

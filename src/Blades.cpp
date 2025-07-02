@@ -19,8 +19,8 @@ Blades::Blades(Device* device, VkCommandPool commandPool, float tileSize, float 
         // Generate positions and direction (v0)
         float x = (generateRandomFloat() - 0.5f) * tileSize + tileOffsetX;
         float z = (generateRandomFloat() - 0.5f) * tileSize + tileOffsetZ;
-        float y = 0.0f;
-        //float y = NoiseUtils::Noise(x * 0.5f, z * 0.5f) * 2.0f; // scale coords & height
+        //float y = 0.0f;
+        float y = NoiseUtils::Noise(x * 0.5f, z * 0.5f) * 2.0f; // scale coords & height
         float direction = generateRandomFloat() * 2.f * 3.14159265f;
         glm::vec3 bladePosition(x, y, z);
         currentBlade.v0 = glm::vec4(bladePosition, direction);
@@ -57,8 +57,8 @@ Blades::Blades(Device* device, VkCommandPool commandPool, float tileSize, float 
     vkUnmapMemory(device->GetVkDevice(), transBufferMemory);
 }
 
-void Blades::UpdateTransformation(const glm::vec4 objTrans) {
-    transformData.transform = objTrans;
+void Blades::UpdateTransformation(const glm::vec4 transform) {
+    transformData.transform = transform;
 
     vkMapMemory(device->GetVkDevice(), transBufferMemory, 0, sizeof(TransformationInfo), 0, &data);
     memcpy(data, &transformData, sizeof(TransformationInfo));

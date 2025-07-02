@@ -61,8 +61,6 @@ bool Terrain::Contains(float x, float z) const {
 
 
 
-
-// Terrain.cpp
 Terrain::Terrain(Device* device, VkCommandPool commandPool, float size, int resolution, float offsetX, float offsetZ)
     : Model(device, commandPool, {}, {}), offsetX(offsetX), offsetZ(offsetZ)
 {
@@ -76,8 +74,8 @@ Terrain::Terrain(Device* device, VkCommandPool commandPool, float size, int reso
         for (int x = 0; x <= resolution; x++) {
             float xpos = -halfSize + x * step + offsetX;
             float zpos = -halfSize + z * step + offsetZ;
-            //float ypos = NoiseUtils::Noise(xpos * 0.5f, zpos * 0.5f) * 2.0f;
-            float ypos = 0.0;
+            float ypos = NoiseUtils::Noise(xpos * 0.5f, zpos * 0.5f) * 2.0f;
+            //float ypos = 0.0;
 
             vertices.push_back({
                 glm::vec3(xpos, ypos, zpos),
