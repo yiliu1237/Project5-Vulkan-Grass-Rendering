@@ -50,14 +50,6 @@ The following GIFs demonstrate real-time simulation and rendering of thousands o
   - `WASD`: Move horizontally
   - `Q` / `E`: Move downward / upward
   - Scroll Wheel: Zoom in / out
-  - **Right-click + Drag**: Rotate the camera viewpoint
+  - Right-click + Drag: Rotate the camera viewpoint
 
----
 
-Let me know if you’d like to add:
-- A **technical architecture diagram**
-- A section on **terrain tile management**
-- **Implementation details** for the culling or simulation logic
-- **Performance stats** (FPS at different densities/resolutions)
-
-Otherwise, you’re good to go!
