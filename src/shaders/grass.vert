@@ -14,6 +14,8 @@ layout(set = 1, binding = 0) uniform ModelBuffer {
 layout(location = 0) in vec4 a_Pos0;  // Vertex position 0 (includes metadata in .w)
 layout(location = 1) in vec4 a_Pos1;  // Vertex position 1
 layout(location = 2) in vec4 a_Pos2;  // Vertex position 2
+layout(location = 3) in vec4 a_Up;        // up
+layout(location = 4) in int a_BladeType; 
 
 // ─────────────────────────────────────────────
 // Vertex Outputs to the next stage
@@ -21,6 +23,8 @@ layout(location = 2) in vec4 a_Pos2;  // Vertex position 2
 layout(location = 0) out vec4 v_WorldPos0;
 layout(location = 1) out vec4 v_WorldPos1;
 layout(location = 2) out vec4 v_WorldPos2;
+layout(location = 3) flat out int v_BladeType;
+
 
 // Required built-in output
 out gl_PerVertex {
@@ -50,4 +54,7 @@ void main() {
     // This is just to satisfy Vulkan validation requirements—
     // the tessellation stage will use the world positions directly.
     gl_Position = v_WorldPos0;
+
+    v_BladeType = a_BladeType;
+
 }

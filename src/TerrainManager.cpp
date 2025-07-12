@@ -38,30 +38,6 @@ TerrainManager::TerrainManager(Device* device, VkCommandPool commandPool, Scene*
 }
 
 
-// Debug 
-TerrainManager::TerrainManager(Device* device, VkCommandPool commandPool, Scene* scene,
-    VkImage texture, float tileSize, int resolution, int gridWidth, int gridHeight, int i, int j)
-    : tileSize(tileSize), resolution(resolution)
-{
-    float startX = -0.5f * gridWidth * tileSize;
-    float startZ = -0.5f * gridHeight * tileSize;
-
-    float worldX = startX + i * tileSize;
-    float worldZ = startZ + j * tileSize;
-
-    Terrain* tile = new Terrain(device, commandPool, tileSize, resolution, worldX, worldZ);
-    tile->SetTexture(texture); //Important!
-
-    scene->AddModel(tile);
-    terrainTiles.push_back(tile);
-
-    // Add blades to this tile
-    Blades* tileBlades = new Blades(device, commandPool, tileSize, worldX, worldZ);
-    scene->AddBlades(tileBlades);
-
-}
-
-
 
 TerrainManager::~TerrainManager() {
     for (Terrain* tile : terrainTiles) {

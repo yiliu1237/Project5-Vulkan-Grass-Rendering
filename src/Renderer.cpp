@@ -1,4 +1,4 @@
-#include "Renderer.h"
+ï»¿#include "Renderer.h"
 #include "Instance.h"
 #include "ShaderModule.h"
 #include "Vertex.h"
@@ -303,7 +303,7 @@ void Renderer::CreateDescriptorPool() {
         // 1) All blades buffer
         // 2) Culled blades buffer
         // 3) Visible blade count or draw arguments buffer
-        // So we allocate 3 × bladeGroupCount storage buffer descriptors.
+        // So we allocate 3 ï¿½ bladeGroupCount storage buffer descriptors.
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER , static_cast<uint32_t>(3 * scene->GetBlades().size()) },
 
         // Reserve space for 1 uniform buffer descriptor:
@@ -465,10 +465,12 @@ void Renderer::CreateGrassDescriptorSets() {
 
 
     for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
+        bufferInfos[i].buffer = scene->GetBlades()[i]->GetTransformationBuffer();
         bufferInfos[i].buffer = scene->GetBlades()[i]->GetModelBuffer();
-        //bufferInfos[i].buffer = scene->GetBlades()[i]->GetTransformationBuffer();  
-        bufferInfos[i].offset = 0;
+        //bufferInfos[i].offset = 0;
         bufferInfos[i].range = sizeof(ModelBufferObject);
+        //bufferInfos[i].range = sizeof(TransformationInfo);
+
 
         descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[i].dstSet = grassDescriptorSets[i];
@@ -479,20 +481,6 @@ void Renderer::CreateGrassDescriptorSets() {
         descriptorWrites[i].pBufferInfo = &bufferInfos[i];
     }
 
-
-    //for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
-    //    bufferInfos[i].buffer = scene->GetBlades()[i]->GetTransformationBuffer(); 
-    //    bufferInfos[i].offset = 0;
-    //    bufferInfos[i].range = sizeof(TransformationInfo);
-
-    //    descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    //    descriptorWrites[i].dstSet = grassDescriptorSets[i];
-    //    descriptorWrites[i].dstBinding = 0;
-    //    descriptorWrites[i].dstArrayElement = 0;
-    //    descriptorWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    //    descriptorWrites[i].descriptorCount = 1;
-    //    descriptorWrites[i].pBufferInfo = &bufferInfos[i];
-    //}
 
     // Update descriptor sets
     vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -557,6 +545,9 @@ void Renderer::CreateComputeDescriptorSets() {
     std::vector<VkWriteDescriptorSet> descriptorWrites;
     descriptorWrites.reserve(bladesList.size() * 4);
 
+    std::vector<VkDescriptorBufferInfo> bufferInfos;
+    bufferInfos.reserve(bladesList.size() * 4);
+
     for (size_t i = 0; i < bladesList.size(); ++i) {
         VkDescriptorBufferInfo bladesBufferInfo = {};
         bladesBufferInfo.buffer = bladesList[i]->GetBladesBuffer();
@@ -578,7 +569,9 @@ void Renderer::CreateComputeDescriptorSets() {
         objectTransBufferInfo.offset = 0;
         objectTransBufferInfo.range = sizeof(TransformationInfo);
 
+
         // Write blade buffer
+        bufferInfos.push_back(bladesBufferInfo);
         VkWriteDescriptorSet write0 = {};
         write0.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         write0.dstSet = computeDescriptorSets[i];
@@ -586,27 +579,30 @@ void Renderer::CreateComputeDescriptorSets() {
         write0.dstArrayElement = 0;
         write0.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         write0.descriptorCount = 1;
-        write0.pBufferInfo = &bladesBufferInfo;
+        write0.pBufferInfo = &bufferInfos.back();
         descriptorWrites.push_back(write0);
 
         // Write culled blade buffer
+        bufferInfos.push_back(culledBladesBufferInfo);
         VkWriteDescriptorSet write1 = write0;
         write1.dstBinding = 1;
-        write1.pBufferInfo = &culledBladesBufferInfo;
+        write1.pBufferInfo = &bufferInfos.back();
         descriptorWrites.push_back(write1);
 
         // Write numBlades buffer
+        bufferInfos.push_back(numBladesBufferInfo);
         VkWriteDescriptorSet write2 = write0;
         write2.dstBinding = 2;
         write2.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        write2.pBufferInfo = &numBladesBufferInfo;
+        write2.pBufferInfo = &bufferInfos.back();
         descriptorWrites.push_back(write2);
 
         // Write objectTrans buffer
+        bufferInfos.push_back(objectTransBufferInfo);
         VkWriteDescriptorSet write3 = write0;
         write3.dstBinding = 3;
         write3.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write3.pBufferInfo = &objectTransBufferInfo;
+        write3.pBufferInfo = &bufferInfos.back();
         descriptorWrites.push_back(write3);
     }
 
@@ -855,7 +851,7 @@ void Renderer::CreateGrassPipeline() {
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = VK_POLYGON_MODE_FILL; 
+    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_NONE;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -1285,6 +1281,8 @@ void Renderer::RecordCommandBuffers() {
         }
     }
 }
+
+
 
 void Renderer::Frame() {
 
